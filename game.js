@@ -30,7 +30,7 @@ function copyDict(dict){
 	return JSON.parse(JSON.stringify(dict));
 }
 
-function PaperTown(){
+function GardenEnPapier(){
     var self = this;
 	var margin = 50;
 	this.doc = new PDFDocument({size: "A4", layout : 'landscape', margin : 0});
@@ -40,7 +40,7 @@ function PaperTown(){
 
     this.stream.on('finish', function() {
 		var link = $(document.createElement('a')).attr("href", self.stream.toBlobURL('application/pdf'))
-		.attr("download", 'PaperTown_Level.pdf')
+		.attr("download", 'GardenEnPapier_Level.pdf')
 		.text('PDF ready to download');
 		document.body.appendChild(link[0]);
 		link[0].click();
@@ -49,24 +49,18 @@ function PaperTown(){
 	});
 };
 
-PaperTown.prototype._drawHexagon = function(x,y,r){
-	var points = [];
-	for (let i=0; i < 7; i++) {
-		let cx = x + r * Math.cos(i * 2 * Math.PI / 6 +  Math.PI / 6);
-		let cy = y + r * Math.sin(i * 2 * Math.PI / 6 +  Math.PI / 6);
-		points.push([cx,cy]);
-	}
-	return this.doc.polygon(... points);
+GardenEnPapier.prototype._drawSquare = function(x,y, width){
+	return this.doc.rect(x, y, width, width);
 };
 
-PaperTown.prototype._drawHexagonRow = function(x,y,radius,n, border, types){
+GardenEnPapier.prototype._drawSquareRow = function(x,y,width,n){
 	let step = Math.sqrt(3) * radius;
 	for (let i=0; i < n; i++) {
-		this._drawHexagon(x + i*step,y,radius).lineWidth(2).fillOpacity(0.2).fillAndStroke(this.typeToColor[types[i]],'white');
+		this._drawSquare(x + i*step,y,width).lineWidth(2).fillOpacity(0.2).stroke('grey');
 	}
 };
 
-PaperTown.prototype._drawHexagonArray = function(x,y,radius,nx,ny, border, types){
+GardenEnPapier.prototype._drawHexagonArray = function(x,y,width){
 	for(let i=0; i<this.rowCount; i++){
 		for(let j=0; j<this.columnCount; j++){
 			let pos = this._getPosition(j,i);
@@ -89,7 +83,7 @@ PaperTown.prototype._drawHexagonArray = function(x,y,radius,nx,ny, border, types
 	}
 };
 
-PaperTown.prototype._getPosition = function(column, row){
+GardenEnPapier.prototype._getPosition = function(column, row){
 	let columnStep = Math.sqrt(3) * this.radius + this.tileBorder;
 	let rowStep = (Math.sqrt(3)/2 + 1/2) * this.radius + this.tileBorder + Math.sqrt(3);
 	let offset = 0;
@@ -104,7 +98,7 @@ PaperTown.prototype._getPosition = function(column, row){
 	}
 }
 
-PaperTown.prototype._goalTypes = [
+GardenEnPapier.prototype._goalTypes = [
 	{
 		'id' : 'harbor',
 		'title' : 'Shining new harbor',
@@ -137,7 +131,7 @@ PaperTown.prototype._goalTypes = [
 	}
 ];
 
-PaperTown.prototype._hotspotTypes = [
+GardenEnPapier.prototype._hotspotTypes = [
 	{
 		'id' : 'bank',
 		'image' : 'bank.png',
@@ -170,7 +164,7 @@ PaperTown.prototype._hotspotTypes = [
 	}
 ];
 
-PaperTown.prototype._randomIndexSet = function(n, length){
+GardenEnPapier.prototype._randomIndexSet = function(n, length){
 	let indexSet = new Set();
 	while(indexSet.size < n){
 		let r = Math.random();
@@ -179,7 +173,7 @@ PaperTown.prototype._randomIndexSet = function(n, length){
 	return indexSet;
 }
 
-PaperTown.prototype._addHotspots = function(){
+GardenEnPapier.prototype._addHotspots = function(){
 	var self = this;
 	let singles = this.map._findSingles();
 	let hotspots = this._randomIndexSet(6, singles.length);
@@ -200,7 +194,7 @@ PaperTown.prototype._addHotspots = function(){
 	});
 };
 
-PaperTown.prototype.typeToColor = {
+GardenEnPapier.prototype.typeToColor = {
 	0 : [0, 0, 0],
 	1 : [137, 150, 165],
 	2 : [0, 243, 158],
@@ -211,7 +205,7 @@ PaperTown.prototype.typeToColor = {
 	7 : [255, 255, 255]
 };
 
-PaperTown.prototype.images = {
+GardenEnPapier.prototype.images = {
 	'bank.png' : '',
 	'tool.png' : '',
 	'cupcake.png' : '',
@@ -221,7 +215,7 @@ PaperTown.prototype.images = {
 	'qrcode.png' : ''
 }
 
-PaperTown.prototype._loadImages = function(afterLoad){
+GardenEnPapier.prototype._loadImages = function(afterLoad){
 	var numberOfImages = Object.keys(this.images).length;
 	var loadingCount = 0;
 	var self = this;
@@ -237,7 +231,7 @@ PaperTown.prototype._loadImages = function(afterLoad){
 	}
 };
 
-PaperTown.prototype._createHeader = function(){
+GardenEnPapier.prototype._createHeader = function(){
 	let headerY = 20;
 	this.doc.rect(this.startX- this.radius * Math.sqrt(3)/2, headerY, 735, 130).lineWidth(1).fillAndStroke('white', 'black');
 	this.doc.rect(this.startX- this.radius * Math.sqrt(3)/2, headerY, 735, 20).fill('black');
@@ -264,7 +258,7 @@ PaperTown.prototype._createHeader = function(){
 	this.doc.image(this.images['qrcode.png'], this.startX + 670, headerY -10 , {'width': 80, 'height':80});
 }
 
-PaperTown.prototype._createFooter = function(){
+GardenEnPapier.prototype._createFooter = function(){
 	let footerY = 490;
 	let boxWidth = 231;
 	let boxHeight = 90;
@@ -292,30 +286,106 @@ PaperTown.prototype._createFooter = function(){
 	}
 };
 
-PaperTown.prototype.createNew = function(){
-	var self = this;
-	this.map = new TownMap(20,10);
+GardenEnPapier.prototype.createNew = function(){
+	var self = this;	
 	this.startX = 40*1.8;
 	this.startY = 180;
-	this.radius = 18;
+	this.squareWidth = 18;
 	this.columnCount = 20;
 	this.rowCount = 10;
 	this.tileBorder = 5;
+	this.map = new GardenGrid(this.startX, this.startY, this.columnCount, this.rowCount, this.squareWidth, self.doc);
 
 
 	this._loadImages(function(){
-		self._addHotspots();
-		self._drawHexagonArray(self.startX, self.startY, self.radius, self.columnCount, self.rowCount, self.tileBorder, self.map.map);
+		//self._addHotspots();
+		self.map.draw();
+		for(let i=0; i<3; i++){
+			let p = Polyomino.createPolyomino(i, self.squareWidth, self.doc);
+			p.draw(self.startX + i * 80, 20);
+		}
 		
-		for(let hotspot of self.hotspots){
-			let pos = self._getPosition(hotspot.column, hotspot.row);
-			self.doc.image(self.images[hotspot.image], pos.x-9, pos.y-9, {'width': 18, 'height':18});
-		} 
-		self._createHeader();
-		self._createFooter();
+		// for(let hotspot of self.hotspots){
+		// 	let pos = self._getPosition(hotspot.column, hotspot.row);
+		// 	self.doc.image(self.images[hotspot.image], pos.x-9, pos.y-9, {'width': 18, 'height':18});
+		// } 
+		// self._createHeader();
+		// self._createFooter();
 		self.doc.end();
 	});
 };
+
+class SquareBased{
+	constructor(width, doc) {
+		this.doc = doc;
+		this.width = width;
+		this.lineWidth = 1;
+		this.lineColor = '#e0e0e0';
+	}
+	_drawSquare = function(x,y, width){
+		return this.doc.rect(x, y, width, width);
+	};
+}
+
+class GardenGrid extends SquareBased{
+	constructor(x, y, nx, ny, width, doc) {
+		super(width, doc);
+		this.x = x;
+		this.y = y;
+		this.nx = nx;
+		this.ny = ny;
+	}
+
+	draw(){
+		for(let i=0; i<this.ny; i++){
+			for(let j=0; j<this.nx; j++){
+				this._drawSquare(j*this.width + this.x, i*this.width + this.y, this.width).lineWidth(this.lineWidth).stroke(this.lineColor);
+			}
+		}
+	}
+};
+
+class Polyomino extends SquareBased{
+	constructor(fields, width , doc){
+		super(width,doc);
+		this.nx = fields[0].length;
+		this.ny = fields.length;
+		this.fields = fields;
+		this.lineColor = 'black';
+	}
+
+	draw(x,y){
+		for(let i=0; i<this.ny; i++){
+			for(let j=0; j<this.nx; j++){
+				if(this.fields[i][j] == 1){
+					this._drawSquare(j*this.width + x, i*this.width + y, this.width).lineWidth(this.lineWidth).stroke(this.lineColor);
+				}
+			}
+		}
+	}
+
+	static _types = [
+		[
+			[0,1,0],
+			[1,1,1],
+			[0,1,0]
+		],
+		[
+			[1,1,1],
+			[1,0,0],
+			[1,1,1]
+		],
+		[
+			[1,1],
+			[1,0],
+			[1,0]
+		],
+	]
+
+	static createPolyomino(i, width, doc){
+		return new Polyomino(Polyomino._types[i], width, doc);
+	}
+}
 
 
 function TownMap(width, height){
@@ -426,7 +496,7 @@ TownMap.prototype._createMap = function(){
 $(document).ready(function(){
     $('.download-new-sheet').click(function(event){
 		event.preventDefault();
-		var town = new PaperTown();
+		var town = new GardenEnPapier();
 		town.createNew();
     });
 });
